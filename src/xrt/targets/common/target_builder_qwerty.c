@@ -18,6 +18,10 @@
 
 #include "qwerty/qwerty_interface.h"
 
+#ifdef XRT_BUILD_DRIVER_SOLARXR
+#include "solarxr/solarxr_device.h"
+#endif
+
 #include <assert.h>
 
 
@@ -99,6 +103,15 @@ qwerty_open_system_impl(struct xrt_builder *xb,
 	ubrh->head = head;
 	ubrh->left = left;
 	ubrh->right = right;
+
+#ifdef XRT_BUILD_DRIVER_SOLARXR
+	const uint32_t count = solarxr_device_create_xdevs(head, &xsysd->xdevs[xsysd->xdev_count],
+	                                                   ARRAY_SIZE(xsysd->xdevs) - xsysd->xdev_count);
+	if (count != 0) {
+		xsysd->static_roles.body = xsysd->xdevs[xsysd->xdev_count];
+	}
+	xsysd->xdev_count += count;
+#endif
 
 	return XRT_SUCCESS;
 }

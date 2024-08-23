@@ -34,6 +34,10 @@
 #include "xrt/xrt_space.h"
 #include "util/u_space_overseer.h"
 
+#ifdef XRT_BUILD_DRIVER_SOLARXR
+#include "solarxr/solarxr_device.h"
+#endif
+
 #ifndef XRT_BUILD_DRIVER_STEAMVR_LIGHTHOUSE
 #error "This builder requires the SteamVR Lighthouse driver"
 #endif
@@ -152,6 +156,15 @@ steamvr_open_system(struct xrt_builder *xb,
 
 	svrb->right_ht = u_system_devices_get_ht_device_right(xsysd);
 	xsysd->static_roles.hand_tracking.right = svrb->right_ht;
+
+#ifdef XRT_BUILD_DRIVER_SOLARXR
+	const uint32_t count = solarxr_device_create_xdevs(xsysd->static_roles.head, &xsysd->xdevs[xsysd->xdev_count],
+	                                                   ARRAY_SIZE(xsysd->xdevs) - xsysd->xdev_count);
+	if (count != 0) {
+		xsysd->static_roles.body = xsysd->xdevs[xsysd->xdev_count];
+	}
+	xsysd->xdev_count += count;
+#endif
 
 	/*
 	 * Space overseer.

@@ -58,6 +58,10 @@
 #include "opengloves/opengloves_interface.h"
 #endif
 
+#ifdef XRT_BUILD_DRIVER_SOLARXR
+#include "solarxr/solarxr_device.h"
+#endif
+
 #if defined(XRT_BUILD_DRIVER_SURVIVE)
 #define DEFAULT_DRIVER "survive"
 #else
@@ -735,6 +739,15 @@ end_valve_index:
 		// We only want to try to add opengloves if we aren't optically tracking hands
 		try_add_opengloves(left, right, &left_ht, &right_ht);
 	}
+
+#ifdef XRT_BUILD_DRIVER_SOLARXR
+	const uint32_t count = solarxr_device_create_xdevs(head, &xsysd->xdevs[xsysd->xdev_count],
+	                                                   ARRAY_SIZE(xsysd->xdevs) - xsysd->xdev_count);
+	if (count != 0) {
+		xsysd->static_roles.body = xsysd->xdevs[xsysd->xdev_count];
+	}
+	xsysd->xdev_count += count;
+#endif
 
 	// Assign to role(s).
 	ubrh->head = head;
