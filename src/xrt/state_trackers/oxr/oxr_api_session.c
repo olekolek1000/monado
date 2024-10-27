@@ -11,16 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include "xrt/xrt_compiler.h"
-
+#include "../compositor/util/comp_layer_accum.h"
 #include "util/u_debug.h"
 #include "util/u_trace_marker.h"
-
 #include "oxr_objects.h"
 #include "oxr_logger.h"
 #include "oxr_two_call.h"
-
 #include "oxr_api_funcs.h"
 #include "oxr_api_verify.h"
 #include "oxr_handle.h"
@@ -178,8 +175,7 @@ oxr_xrEndFrame(XrSession session, const XrFrameEndInfo *frameEndInfo)
 	// Get from compositor.
 	struct xrt_system_compositor_info *info = sess->sys->xsysc ? &sess->sys->xsysc->info : NULL;
 
-	// headless extension does not modify the 16 layer minimum.
-	uint32_t max_layers = 16;
+	uint32_t max_layers = COMP_MAX_LAYERS;
 	if (info) {
 		max_layers = info->max_layers;
 	}

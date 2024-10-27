@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#define COMP_MAX_LAYERS 16
+#define COMP_MAX_LAYERS 128
 
 
 #ifdef __cplusplus

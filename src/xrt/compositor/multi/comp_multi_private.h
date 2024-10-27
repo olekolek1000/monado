@@ -12,6 +12,7 @@
 #include "xrt/xrt_compiler.h"
 #include "xrt/xrt_defines.h"
 #include "xrt/xrt_compositor.h"
+#include "../util/comp_layer_accum.h"
 
 #include "os/os_time.h"
 #include "os/os_threading.h"
@@ -37,7 +38,7 @@ extern "C" {
  * @todo Move to `xrt_limits.h` and share.
  * @ingroup comp_multi
  */
-#define MULTI_MAX_LAYERS 16
+#define MULTI_MAX_LAYERS COMP_MAX_LAYERS
 
 
 /*

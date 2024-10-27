@@ -22,7 +22,7 @@ const float PI = acos(-1);
 // Should we do timewarp.
 layout(constant_id = 1) const bool do_timewarp = false;
 layout(constant_id = 2) const bool do_color_correction = true;
-layout(constant_id = 3) const int RENDER_MAX_LAYERS = 16;
+layout(constant_id = 3) const int RENDER_MAX_LAYERS = 128;
 layout(constant_id = 4) const int SAMPLER_ARRAY_SIZE = 16;
 
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
@@ -71,10 +71,12 @@ layout(set = 0, binding = 3, std140) uniform restrict Config
 
 	// quad extent in world scale
 	vec2 quad_extent[RENDER_MAX_LAYERS];
-} ubo;
+}
+ubo;
 
 
-vec2 position_to_view_uv(ivec2 extent, uint ix, uint iy)
+vec2
+position_to_view_uv(ivec2 extent, uint ix, uint iy)
 {
 	// Turn the index into floating point.
 	vec2 xy = vec2(float(ix), float(iy));
@@ -91,7 +93,8 @@ vec2 position_to_view_uv(ivec2 extent, uint ix, uint iy)
 	return view_uv;
 }
 
-vec2 transform_uv_subimage(vec2 uv, uint layer)
+vec2
+transform_uv_subimage(vec2 uv, uint layer)
 {
 	vec2 values = uv;
 
@@ -102,7 +105,8 @@ vec2 transform_uv_subimage(vec2 uv, uint layer)
 	return values.xy;
 }
 
-vec2 transform_uv_timewarp(vec2 uv, uint layer)
+vec2
+transform_uv_timewarp(vec2 uv, uint layer)
 {
 	vec4 values = vec4(uv, -1, 1);
 
@@ -124,7 +128,8 @@ vec2 transform_uv_timewarp(vec2 uv, uint layer)
 	return values.xy;
 }
 
-vec2 transform_uv(vec2 uv, uint layer)
+vec2
+transform_uv(vec2 uv, uint layer)
 {
 	if (do_timewarp) {
 		return transform_uv_timewarp(uv, layer);
@@ -133,7 +138,8 @@ vec2 transform_uv(vec2 uv, uint layer)
 	}
 }
 
-vec4 do_cylinder(vec2 view_uv, uint layer)
+vec4
+do_cylinder(vec2 view_uv, uint layer)
 {
 	// Get ray position in model space.
 	const vec3 ray_origin = (ubo.mv_inverse[layer] * vec4(0, 0, 0, 1)).xyz;
@@ -166,7 +172,7 @@ vec4 do_cylinder(vec2 view_uv, uint layer)
 		float b = dot(ray_origin, ray_dir) - caoc * card;
 		float c = dot(ray_origin, ray_origin) - caoc * caoc - radius * radius;
 		float h = b * b - a * c;
-		if(h < 0.f) {
+		if (h < 0.f) {
 			// no intersection
 			return vec4(0.f);
 		}
@@ -238,7 +244,8 @@ vec4 do_cylinder(vec2 view_uv, uint layer)
 	return out_color;
 }
 
-vec4 do_equirect2(vec2 view_uv, uint layer)
+vec4
+do_equirect2(vec2 view_uv, uint layer)
 {
 	// Get ray position in model space.
 	const vec3 ray_origin = (ubo.mv_inverse[layer] * vec4(0, 0, 0, 1)).xyz;
@@ -337,7 +344,8 @@ vec4 do_equirect2(vec2 view_uv, uint layer)
 	return out_color;
 }
 
-vec4 do_projection(vec2 view_uv, uint layer)
+vec4
+do_projection(vec2 view_uv, uint layer)
 {
 	uint source_image_index = ubo.images_samplers[layer].x;
 
@@ -350,7 +358,8 @@ vec4 do_projection(vec2 view_uv, uint layer)
 	return colour;
 }
 
-vec3 get_direction(vec2 uv)
+vec3
+get_direction(vec2 uv)
 {
 	// Skip the DIM/STRETCH/OFFSET stuff and go directly to values
 	vec4 values = vec4(uv, -1, 1);
@@ -369,7 +378,8 @@ vec3 get_direction(vec2 uv)
 	return direction;
 }
 
-vec4 do_quad(vec2 view_uv, uint layer)
+vec4
+do_quad(vec2 view_uv, uint layer)
 {
 	uint source_image_index = ubo.images_samplers[layer].x;
 
@@ -391,18 +401,19 @@ vec4 do_quad(vec2 view_uv, uint layer)
 	vec2 uv = view_uv;
 
 	/*
-	* To fill in the view_uv texel on the target texture, an imaginary ray is shot through texels on the target
-	* texture. When this imaginary ray hits a quad layer, it means that when the respective color at the hit
-	* intersection is picked for the current view_uv texel, the final image as seen through the headset will
-	* show this view_uv texel at the respective location.
-	*/
+	 * To fill in the view_uv texel on the target texture, an imaginary ray is shot through texels on the target
+	 * texture. When this imaginary ray hits a quad layer, it means that when the respective color at the hit
+	 * intersection is picked for the current view_uv texel, the final image as seen through the headset will
+	 * show this view_uv texel at the respective location.
+	 */
 	vec3 direction = get_direction(uv);
 	direction = normalize(direction);
 
 	float denominator = dot(direction, normal);
 
 	// denominator is negative when vectors point towards each other, 0 when perpendicular,
-	// and positive when vectors point in a similar direction, i.e. direction vector faces quad backface, which we don't render.
+	// and positive when vectors point in a similar direction, i.e. direction vector faces quad backface, which we
+	// don't render.
 	if (denominator < 0.00001) {
 		// shortest distance between origin and plane defined by normal + quad_position
 		float dist = dot(camera - quad_position, normal);
@@ -421,14 +432,14 @@ vec4 do_quad(vec2 view_uv, uint layer)
 		// ps for "plane space"
 		vec2 intersection_ps = (ubo.inverse_quad_transform[layer] * vec4(intersection.xyz, 1.0)).xy;
 
-		bool in_plane_bounds =
-			intersection_ps.x >= - ubo.quad_extent[layer].x / 2. && //
-			intersection_ps.x <= ubo.quad_extent[layer].x / 2. && //
-			intersection_ps.y >= - ubo.quad_extent[layer].y / 2. && //
-			intersection_ps.y <= ubo.quad_extent[layer].y / 2.;
+		bool in_plane_bounds = intersection_ps.x >= -ubo.quad_extent[layer].x / 2. && //
+		                       intersection_ps.x <= ubo.quad_extent[layer].x / 2. &&  //
+		                       intersection_ps.y >= -ubo.quad_extent[layer].y / 2. && //
+		                       intersection_ps.y <= ubo.quad_extent[layer].y / 2.;
 
 		if (in_plane_bounds) {
-			// intersection_ps is in [-quad_extent .. quad_extent]. Transform to  [0 .. quad_extent], then scale to [ 0 .. 1 ] for sampling
+			// intersection_ps is in [-quad_extent .. quad_extent]. Transform to  [0 .. quad_extent], then
+			// scale to [ 0 .. 1 ] for sampling
 			vec2 plane_uv = (intersection_ps.xy + ubo.quad_extent[layer] / 2.) / ubo.quad_extent[layer];
 
 			// sample on the desired subimage, not the entire texture
@@ -449,7 +460,8 @@ vec4 do_quad(vec2 view_uv, uint layer)
 	return vec4(colour);
 }
 
-vec4 do_layers(vec2 view_uv)
+vec4
+do_layers(vec2 view_uv)
 {
 	vec4 accum = vec4(0, 0, 0, 0);
 
@@ -458,19 +470,11 @@ vec4 do_layers(vec2 view_uv)
 		vec4 rgba = vec4(0, 0, 0, 0);
 
 		switch (ubo.layer_type_and_unpremultiplied[layer].x) {
-		case XRT_LAYER_CYLINDER:
-			rgba = do_cylinder(view_uv, layer);
-			break;
-		case XRT_LAYER_EQUIRECT2:
-			rgba = do_equirect2(view_uv, layer);
-			break;
+		case XRT_LAYER_CYLINDER: rgba = do_cylinder(view_uv, layer); break;
+		case XRT_LAYER_EQUIRECT2: rgba = do_equirect2(view_uv, layer); break;
 		case XRT_LAYER_PROJECTION:
-		case XRT_LAYER_PROJECTION_DEPTH:
-			rgba = do_projection(view_uv, layer);
-			break;
-		case XRT_LAYER_QUAD:
-			rgba = do_quad(view_uv, layer);
-			break;
+		case XRT_LAYER_PROJECTION_DEPTH: rgba = do_projection(view_uv, layer); break;
+		case XRT_LAYER_QUAD: rgba = do_quad(view_uv, layer); break;
 		default: break;
 		}
 
@@ -487,7 +491,8 @@ vec4 do_layers(vec2 view_uv)
 	return accum;
 }
 
-void main()
+void
+main()
 {
 	uint ix = gl_GlobalInvocationID.x;
 	uint iy = gl_GlobalInvocationID.y;

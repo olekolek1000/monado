@@ -54,8 +54,9 @@ extern "C" {
 /*!
  * Max number of layers for layer squasher, can be different from
  * @ref COMP_MAX_LAYERS as the render module is separate from the compositor.
+ * @warning Change RENDER_MAX_LAYERS value in layer.comp accordingly.
  */
-#define RENDER_MAX_LAYERS (16)
+#define RENDER_MAX_LAYERS (128)
 
 /*!
  * Max number of images that can be given at a single time to the layer

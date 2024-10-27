@@ -49,7 +49,7 @@ extern "C" {
  */
 
 #define IPC_MAX_CLIENT_SEMAPHORES 8
-#define IPC_MAX_CLIENT_SWAPCHAINS 32
+#define IPC_MAX_CLIENT_SWAPCHAINS 128
 #define IPC_MAX_CLIENT_SPACES 128
 
 struct xrt_instance;

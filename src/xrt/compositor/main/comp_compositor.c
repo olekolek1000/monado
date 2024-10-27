@@ -345,7 +345,7 @@ static xrt_result_t
 compositor_request_display_refresh_rate(struct xrt_compositor *xc, float display_refresh_rate_hz)
 {
 #ifdef XRT_OS_ANDROID
-	typedef int32_t (*PF_SETFRAMERATE)(ANativeWindow * window, float frameRate, int8_t compatibility);
+	typedef int32_t (*PF_SETFRAMERATE)(ANativeWindow *window, float frameRate, int8_t compatibility);
 
 	// Note that this will just increment the reference count, rather than actually load it again,
 	// since we are linked for other symbols too.
@@ -1088,7 +1088,7 @@ comp_main_create_system_compositor(struct xrt_device *xdev,
 	struct xrt_system_compositor_info *sys_info = &sys_info_storage;
 
 	// Required by OpenXR spec.
-	sys_info->max_layers = 16;
+	sys_info->max_layers = COMP_MAX_LAYERS;
 	sys_info->compositor_vk_deviceUUID = c->settings.selected_gpu_deviceUUID;
 	sys_info->client_vk_deviceUUID = c->settings.client_gpu_deviceUUID;
 	sys_info->client_d3d_deviceLUID = c->settings.client_gpu_deviceLUID;
